@@ -204,11 +204,17 @@ thread_create (const char *name, int priority,
 	t->tf.cs = SEL_KCSEG;
 	t->tf.eflags = FLAG_IF;
 
+
 	/* Add to run queue. */
 	thread_unblock (t);
 
 	return tid;
 }
+
+// void cmp_preempt(struct thread *t){
+// 	struct thread *cur_runnung_t;
+// 	cur_runnung_t = thread_current();
+// }
 
 /* Puts the current thread to sleep.  It will not be scheduled
    again until awoken by thread_unblock().
@@ -313,7 +319,7 @@ thread_yield (void) {
 
 	old_level = intr_disable ();
 	if (curr != idle_thread)
-		// list_push_back (&ready_list, &curr->elem);
+		//list_push_back (&ready_list, &curr->elem);
 		list_insert_ordered(&ready_list,&curr->elem,order_by_priority,NULL);
 	do_schedule (THREAD_READY);
 	intr_set_level (old_level);
