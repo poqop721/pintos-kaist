@@ -1,0 +1,2 @@
+break priority-fifo.c:simple_thread_func
+
