@@ -336,7 +336,24 @@ thread_yield (void) {
 void
 thread_set_priority (int new_priority) {
 	thread_current()->priority = new_priority;
+	refresh_priority();
 	cmp_preempt_max();
+}
+
+/* thread/thread.c */
+void refresh_priority (void)
+{
+  struct thread *cur = thread_current ();
+
+  cur->priority = cur->origin_p;
+  
+  if (!list_empty (&cur->donations)) {
+    list_sort (&cur->donations, order_by_priority, 0);
+
+    struct thread *front = list_entry (list_front (&cur->donations), struct thread, d_elem);
+    if (front->priority > cur->priority)
+      cur->priority = front->priority;
+  }
 }
 
 void cmp_preempt_max()

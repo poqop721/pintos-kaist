@@ -152,5 +152,6 @@ void do_iret (struct intr_frame *tf);
 bool order_by_priority (const struct list_elem *a, const struct list_elem *b, void *aux);
 void cmp_preempt(struct thread *t);
 void cmp_preempt_max();
+void refresh_priority (void);
 
 #endif /* threads/thread.h */

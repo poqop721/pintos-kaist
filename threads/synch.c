@@ -71,7 +71,6 @@ sema_down (struct semaphore *sema) {
 		thread_block ();
 	}
 	sema->value--; 
-	thread_current()->wait_on_lock = NULL; // release되는 thread의 wait_on_lock 을 Null로
 	intr_set_level (old_level);
 }
 
@@ -231,10 +230,27 @@ lock_acquire (struct lock *lock) {
 	ASSERT (lock != NULL);
 	ASSERT (!intr_context ());
 	ASSERT (!lock_held_by_current_thread (lock));
+	struct list_elem *e;
+	int count = 0;
 
 	if(lock->holder != NULL){ // lock->holder가 NULL이 아닐 때
 		thread_current()->wait_on_lock = lock; 
-		list_insert_ordered(&lock->holder->donations, &thread_current()->d_elem, order_by_priority, 0); // lock holders의 donations에 current thread 추가
+		for (e = list_begin (&thread_current()->donations); e != list_end (&thread_current()->donations);e = list_next(e)){
+			struct thread *e_thread = list_entry(e,struct thread, d_elem);
+			if(e_thread->wait_on_lock == lock){
+				count++;
+				if(e_thread->priority < thread_current()->priority){
+					list_remove(e);
+					list_insert_ordered(&lock->holder->donations, &thread_current()->d_elem, order_by_priority, 0); // lock holders의 donations에 current thread 추가
+				}
+				else {
+					break;
+				}
+			}
+		}
+		if(count == 0){
+			list_insert_ordered(&lock->holder->donations, &thread_current()->d_elem, order_by_priority, 0); // lock holders의 donations에 current thread 추가
+		}
 		cmp_priority_lock_aquire(lock, thread_current());
 	}
 
