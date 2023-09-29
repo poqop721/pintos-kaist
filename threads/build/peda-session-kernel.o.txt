@@ -1,2 +1,3 @@
-break priority-fifo.c:simple_thread_func
+break priority-donate-multiple.c:test_priority_donate_multiple
+break /home/jeonseungtae/문서/new_pintos/pintos-kaist/tests/threads/priority-donate-multiple.c:54
 

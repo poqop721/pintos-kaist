@@ -37,6 +37,8 @@ void cond_init (struct condition *);
 void cond_wait (struct condition *, struct lock *);
 void cond_signal (struct condition *, struct lock *);
 void cond_broadcast (struct condition *, struct lock *);
+void cmp_priority_lock_aquire(struct lock *lock, struct thread *req_lock_thread);
+void cmp_priority_lock_release(struct lock *lock);
 
 /* Optimization barrier.
  *

@@ -109,6 +109,7 @@ thread_init (void) {
 	lock_init (&tid_lock);
 	list_init (&ready_list);
 	list_init (&destruction_req);
+	
 
 	/* Set up a thread structure for the running thread. */
 	initial_thread = running_thread ();
@@ -208,13 +209,19 @@ thread_create (const char *name, int priority,
 	/* Add to run queue. */
 	thread_unblock (t);
 
+	cmp_preempt(t);
+
 	return tid;
 }
 
-// void cmp_preempt(struct thread *t){
-// 	struct thread *cur_runnung_t;
-// 	cur_runnung_t = thread_current();
-// }
+void cmp_preempt(struct thread *t){
+	struct thread *cur_runnung_t;
+	cur_runnung_t = thread_current();
+
+	if(cur_runnung_t->priority < t->priority){
+		thread_yield();
+	}
+}
 
 /* Puts the current thread to sleep.  It will not be scheduled
    again until awoken by thread_unblock().
@@ -328,7 +335,20 @@ thread_yield (void) {
 /* Sets the current thread's priority to NEW_PRIORITY. */
 void
 thread_set_priority (int new_priority) {
-	thread_current ()->priority = new_priority;
+	thread_current()->priority = new_priority;
+	cmp_preempt_max();
+}
+
+void cmp_preempt_max()
+{
+	if(!list_empty(&ready_list)){
+		struct thread *max_thread;
+		struct list_elem *front = list_begin (&ready_list);
+		max_thread = list_entry(front,struct thread,elem);
+		if(max_thread->priority > thread_current()->priority){
+			thread_yield();
+		}
+	}
 }
 
 /* Returns the current thread's priority. */
@@ -425,7 +445,11 @@ init_thread (struct thread *t, const char *name, int priority) {
 	strlcpy (t->name, name, sizeof t->name);
 	t->tf.rsp = (uint64_t) t + PGSIZE - sizeof (void *);
 	t->priority = priority;
+	t->origin_p = priority;
 	t->magic = THREAD_MAGIC;
+
+	lock_init(&t->wait_on_lock);
+	list_init(&t->donations);
 }
 
 /* Chooses and returns the next thread to be scheduled.  Should
