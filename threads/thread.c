@@ -268,6 +268,13 @@ bool order_by_priority (const struct list_elem *a, const struct list_elem *b, vo
     return st_a->priority > st_b->priority;
 }
 
+bool order_by_priority_donation (const struct list_elem *a, const struct list_elem *b, void *aux)
+{
+    struct thread *st_a = list_entry(a, struct thread, d_elem);
+    struct thread *st_b = list_entry(b, struct thread, d_elem);
+    return st_a->priority > st_b->priority;
+}
+
 /* Returns the name of the running thread. */
 const char *
 thread_name (void) {
@@ -336,6 +343,7 @@ thread_yield (void) {
 void
 thread_set_priority (int new_priority) {
 	thread_current()->priority = new_priority;
+	thread_current()->origin_p = new_priority;
 	refresh_priority();
 	cmp_preempt_max();
 }
@@ -343,18 +351,30 @@ thread_set_priority (int new_priority) {
 /* thread/thread.c */
 void refresh_priority (void)
 {
-  struct thread *cur = thread_current ();
-
-  cur->priority = cur->origin_p;
-  
-  if (!list_empty (&cur->donations)) {
-    list_sort (&cur->donations, order_by_priority, 0);
-
-    struct thread *front = list_entry (list_front (&cur->donations), struct thread, d_elem);
-    if (front->priority > cur->priority)
-      cur->priority = front->priority;
-  }
+	struct thread *cur = thread_current();
+	if(!list_empty(&cur->donations)){
+		struct list_elem *max_elem = list_front(&cur->donations);
+		struct thread *max_thread = list_entry(max_elem, struct thread, d_elem);
+		if(cur->priority < max_thread->priority)
+			cur->priority = max_thread->priority;
+	}
 }
+
+// /* thread/thread.c */
+// void refresh_priority (void)
+// {
+//   struct thread *cur = thread_current ();
+
+//   cur->priority = cur->origin_p;
+  
+//   if (!list_empty (&cur->donations)) {
+//     list_sort (&cur->donations, order_by_priority, 0);
+
+//     struct thread *front = list_entry (list_front (&cur->donations), struct thread, d_elem);
+//     if (front->priority > cur->priority)
+//       cur->priority = front->priority;
+//   }
+// }
 
 void cmp_preempt_max()
 {

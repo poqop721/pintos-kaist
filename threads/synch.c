@@ -241,7 +241,7 @@ lock_acquire (struct lock *lock) {
 				count++;
 				if(e_thread->priority < thread_current()->priority){
 					list_remove(e);
-					list_insert_ordered(&lock->holder->donations, &thread_current()->d_elem, order_by_priority, 0); // lock holders의 donations에 current thread 추가
+					list_insert_ordered(&lock->holder->donations, &thread_current()->d_elem, order_by_priority_donation, 0); // lock holders의 donations에 current thread 추가
 				}
 				else {
 					break;
@@ -249,7 +249,7 @@ lock_acquire (struct lock *lock) {
 			}
 		}
 		if(count == 0){
-			list_insert_ordered(&lock->holder->donations, &thread_current()->d_elem, order_by_priority, 0); // lock holders의 donations에 current thread 추가
+			list_insert_ordered(&lock->holder->donations, &thread_current()->d_elem, order_by_priority_donation, 0); // lock holders의 donations에 current thread 추가
 		}
 		cmp_priority_lock_aquire(lock, thread_current());
 	}

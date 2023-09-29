@@ -153,5 +153,6 @@ bool order_by_priority (const struct list_elem *a, const struct list_elem *b, vo
 void cmp_preempt(struct thread *t);
 void cmp_preempt_max();
 void refresh_priority (void);
+bool order_by_priority_donation (const struct list_elem *a, const struct list_elem *b, void *aux);
 
 #endif /* threads/thread.h */
