@@ -150,6 +150,7 @@ sema_up (struct semaphore *sema) {
 	struct thread *t;
 	old_level = intr_disable ();
 	if (!list_empty (&sema->waiters)){
+		list_sort(&sema->waiters,order_by_priority,NULL); // sema_down에서 insert order로 넣었는데 왜 또? %%%
 		t = list_entry (list_pop_front (&sema->waiters),
 					struct thread, elem);
 		thread_unblock (t);

@@ -159,13 +159,16 @@ void thread_wake_up(void)
     struct thread *t;
 	
 	if(!list_empty(&sleep_list)){
-		for (e = list_begin (&sleep_list); e != list_end (&sleep_list); e = list_next (e)){
+		for (e = list_begin (&sleep_list); e != list_end (&sleep_list);){
 			t = list_entry(e, struct thread, elem);
 			if(t->wake_up_tick <= ticks){ // tick이 4씩 증가하는데, 그러면 tick보다 작으면 된다 ../ tick이 더 지난 시간이니까
-				list_pop_front(&sleep_list);
+				// list_pop_front(&sleep_list);
+				e = list_remove(e);
 				thread_unblock(t);
 			}
-			else break;
+			else {
+				e = list_next(e);
+			}
 		}
 	}
 }
