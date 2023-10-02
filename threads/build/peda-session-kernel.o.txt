@@ -1,2 +1,4 @@
-break priority-donate-sema.c:57
+break priority-donate-sema.c:54
+break priority-donate-sema.c:65
+break priority-donate-sema.c:74
 

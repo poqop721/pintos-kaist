@@ -35,7 +35,7 @@ test_priority_condvar (void)
 
   for (i = 0; i < 10; i++) 
     {
-      lock_acquire (&lock);
+      lock_acquire (&lock); // cond wait을 하던 cond signal을 하던 lock을 먼저 얻어야 (얻은) 할 수 있다.
       msg ("Signaling...");
       cond_signal (&condition, &lock);
       lock_release (&lock);

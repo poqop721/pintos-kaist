@@ -236,13 +236,17 @@ lock_acquire (struct lock *lock) {
 
 	if(lock->holder != NULL){ // lock->holder가 NULL이 아닐 때
 		thread_current()->wait_on_lock = lock; 
-		for (e = list_begin (&thread_current()->donations); e != list_end (&thread_current()->donations);e = list_next(e)){
+		//스레드 T1 이 lock A 를 얻으려고 왔는데, 그 A는 이미 lock holder가 있었고, 그 lock holder는 락 B도 hold 하고 있는 상태다.
+		// 이 때, 그 lock holder의 donation list에는 락 A의 우선순위 최대값과 락 B의 우선순위 최대값이 들어있다.
+		// 만약 T1이 lock A의 우선순위 중 최고라면, lock holder의 donation list의 A에 대한 우선순위 max값을 갱신해야 한다. 아래는 이를 위한 코드다.
+		for (e = list_begin (&lock->holder->donations); e != list_end (&lock->holder->donations);e = list_next(e)){
 			struct thread *e_thread = list_entry(e,struct thread, d_elem);
 			if(e_thread->wait_on_lock == lock){
 				count++;
 				if(e_thread->priority < thread_current()->priority){
 					list_remove(e);
 					list_insert_ordered(&lock->holder->donations, &thread_current()->d_elem, order_by_priority_donation, 0); // lock holders의 donations에 current thread 추가
+					break;
 				}
 				else {
 					break;
@@ -346,6 +350,7 @@ struct semaphore_elem {
 	struct semaphore semaphore;         /* This semaphore. */
 };
 
+
 /* Initializes condition variable COND.  A condition variable
    allows one piece of code to signal a condition and cooperating
    code to receive the signal and act upon it. */
@@ -387,7 +392,7 @@ cond_wait (struct condition *cond, struct lock *lock) {
 
 	sema_init (&waiter.semaphore, 0);
 	list_push_back (&cond->waiters, &waiter.elem);
-	// list_insert_ordered(&cond->waiters,&waiter.elem,cmp_sem_priority,NULL);
+	// list_insert_ordered(&cond->waiters,&waiter.elem,order_by_priority_condition,NULL);
 	lock_release (lock);
 	sema_down (&waiter.semaphore);
 	lock_acquire (lock);
@@ -408,6 +413,7 @@ cond_signal (struct condition *cond, struct lock *lock UNUSED) {
 	ASSERT (lock_held_by_current_thread (lock));
 
 	if (!list_empty (&cond->waiters)){
+		list_sort(&cond->waiters, order_by_priority_condition,NULL);
 		sema_up (&list_entry (list_pop_front (&cond->waiters),
 					struct semaphore_elem, elem)->semaphore);
 	}
@@ -426,4 +432,15 @@ cond_broadcast (struct condition *cond, struct lock *lock) {
 
 	while (!list_empty (&cond->waiters))
 		cond_signal (cond, lock);
+}
+
+bool order_by_priority_condition (const struct list_elem *a, const struct list_elem *b, void *aux)
+{
+	struct semaphore_elem *waiter1 = list_entry(a,struct semaphore_elem, elem);
+    struct thread *st_a = list_entry(waiter1->semaphore.waiters.head.next, struct thread, elem);
+
+	struct semaphore_elem *waiter2 = list_entry(b,struct semaphore_elem, elem);
+    struct thread *st_b = list_entry(waiter2->semaphore.waiters.head.next, struct thread, elem);
+
+    return st_a->priority > st_b->priority;
 }

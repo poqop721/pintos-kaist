@@ -55,7 +55,7 @@ l_thread_func (void *ls_)
   msg ("Thread L acquired lock.");
   sema_down (&ls->sema);
   msg ("Thread L downed semaphore.");
-  lock_release (&ls->lock);
+  lock_release (&ls->lock);// 그 다음 h가 lock acquire 함(release 할 때 도네이션 받은 값 반환)
   msg ("Thread L finished.");
 }
 
@@ -64,7 +64,7 @@ m_thread_func (void *ls_)
 {
   struct lock_and_sema *ls = ls_;
 
-  sema_down (&ls->sema);
+  sema_down (&ls->sema);//
   msg ("Thread M finished.");
 }
 

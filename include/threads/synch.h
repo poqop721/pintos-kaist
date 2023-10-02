@@ -39,6 +39,7 @@ void cond_signal (struct condition *, struct lock *);
 void cond_broadcast (struct condition *, struct lock *);
 void cmp_priority_lock_aquire(struct lock *lock, struct thread *req_lock_thread);
 void cmp_priority_lock_release(struct lock *lock);
+bool order_by_priority_condition (const struct list_elem *a, const struct list_elem *b, void *aux);
 
 /* Optimization barrier.
  *
